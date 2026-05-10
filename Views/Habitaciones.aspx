@@ -1,5 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Habitaciones.aspx.cs" Inherits="Habitaciones" %>
-
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Habitaciones.aspx.cs" Inherits="Habitaciones" Async="true" %>
 <!DOCTYPE html>
 <html lang="es">
 <head runat="server">
