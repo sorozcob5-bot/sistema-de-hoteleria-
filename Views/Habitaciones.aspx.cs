@@ -1,44 +1,53 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
-using System.Web.UI;
 using System.Web.Script.Serialization;
+using System.Web.UI.WebControls;
+using System.Threading.Tasks;
 
 public partial class Habitaciones : System.Web.UI.Page
 {
+    // Cambia esto por la URL real de tu API de Hoteles
+    private string urlApiHoteles = "http://tu-api.com/api/hoteles";
+
     protected void Page_Load(object sender, EventArgs e)
     {
         if (!IsPostBack)
         {
-            // Aquí llamarías a la API para llenar el ddlHoteles
+            // RegisterAsyncTask permite llamar a métodos asíncronos en el Load
+            RegisterAsyncTask(new PageAsyncTask(CargarHoteles));
         }
     }
 
-    protected async void btnGuardar_Click(object sender, EventArgs e)
+    private async Task CargarHoteles()
     {
         try
         {
-            var habitacion = new {
-                id_hotel = ddlHoteles.SelectedValue,
-                numero = txtNumero.Text,
-                tipo = ddlTipo.SelectedValue,
-                precio = txtPrecio.Text
-            };
-
             using (HttpClient client = new HttpClient())
             {
-                var json = new JavaScriptSerializer().Serialize(habitacion);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                
-                // REEMPLAZAR CON TU URL DE API
-                var response = await client.PostAsync("http://tu-api.com/api/habitaciones", content);
+                string json = await client.GetStringAsync(urlApiHoteles);
+                var listaHoteles = new JavaScriptSerializer().Deserialize<List<HotelDTO>>(json);
 
-                if (response.IsSuccessStatusCode) {
-                    // Limpiar campos
-                    txtNumero.Text = ""; txtPrecio.Text = "";
-                }
+                ddlHoteles.DataSource = listaHoteles;
+                ddlHoteles.DataTextField = "nombre"; // Lo que el usuario ve
+                ddlHoteles.DataValueField = "id";    // El ID que se guarda en la DB
+                ddlHoteles.DataBind();
+
+                // Añadir una opción por defecto
+                ddlHoteles.Items.Insert(0, new ListItem("Seleccione un hotel...", "0"));
             }
         }
-        catch (Exception ex) { /* Manejar error */ }
+        catch (Exception)
+        {
+            ddlHoteles.Items.Add(new ListItem("Error al cargar hoteles", "0"));
+        }
     }
+
+    // Clase auxiliar para recibir los datos de la API
+    public class HotelDTO {
+        public int id { get; set; }
+        public string nombre { get; set; }
+    }
+
+    // ... aquí iría tu método btnGuardar_Click que ya tienes ...
 }
